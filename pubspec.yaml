@@ -29,7 +29,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.example.dsp_rs
+        package: dev.piero512.dsp_rs
         pluginClass: DspRsPlugin
       ios:
         pluginClass: DspRsPlugin

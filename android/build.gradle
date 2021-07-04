@@ -1,4 +1,4 @@
-group 'com.example.dsp_rs'
+group 'dev.piero512.dsp_rs'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -26,7 +26,6 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 30
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
