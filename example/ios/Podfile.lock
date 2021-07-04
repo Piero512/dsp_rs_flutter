@@ -1,0 +1,22 @@
+PODS:
+  - dsp_rs (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - dsp_rs (from `.symlinks/plugins/dsp_rs/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  dsp_rs:
+    :path: ".symlinks/plugins/dsp_rs/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  dsp_rs: 47a31f82cb6854052370208e7b0c6fb1ce7efcf3
+  Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
+
+PODFILE CHECKSUM: a75497545d4391e2d394c3668e20cfb1c2bbd4aa
+
+COCOAPODS: 1.10.0

@@ -11,4 +11,8 @@ public class SwiftDspRsPlugin: NSObject, FlutterPlugin {
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     result("iOS " + UIDevice.current.systemVersion)
   }
+
+  public func dummyMethodToEnforceBundling(){
+    dsprs_signal_empty(441000);
+  }
 }
