@@ -41,12 +41,12 @@ flutter:
       windows:
         pluginClass: DspRsPlugin
 ffigen:
-  output: 'lib/src/dsp_rs.dart'
+  output: 'lib/src/dsp_rs_ffi.dart'
   headers:
     entry-points:
       - 'dsp_rs.h'
     include-directives:
       - '**dsp_rs.h'
-  name: 'DspRs'
+  name: 'DspRsFfi'
   description: 'Native bindings to dsp.rs'
   preamble: '// ignore_for_file: camel_case_types, non_constant_identifier_names'

@@ -5,16 +5,16 @@
 import 'dart:ffi' as ffi;
 
 /// Native bindings to dsp.rs
-class DspRs {
+class DspRsFfi {
   /// Holds the symbol lookup function.
   final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
       _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
-  DspRs(ffi.DynamicLibrary dynamicLibrary) : _lookup = dynamicLibrary.lookup;
+  DspRsFfi(ffi.DynamicLibrary dynamicLibrary) : _lookup = dynamicLibrary.lookup;
 
   /// The symbols are looked up with [lookup].
-  DspRs.fromLookup(
+  DspRsFfi.fromLookup(
       ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
           lookup)
       : _lookup = lookup;
@@ -53,14 +53,17 @@ class DspRs {
 
   /// \brief
   /// Calculate a real-valued FFT and return the values on
-  Vec_float_t dsprs_forward_fft_process_real(
+  bool dsprs_forward_fft_process_real(
     ffi.Pointer<ForwardFFTHandle> fft,
     slice_ref_float_t input,
+    slice_mut_float_t output,
   ) {
     return _dsprs_forward_fft_process_real(
-      fft,
-      input,
-    );
+          fft,
+          input,
+          output,
+        ) !=
+        0;
   }
 
   late final _dsprs_forward_fft_process_real_ptr =
@@ -70,6 +73,11 @@ class DspRs {
       _dsprs_forward_fft_process_real = _dsprs_forward_fft_process_real_ptr
           .asFunction<_dart_dsprs_forward_fft_process_real>();
 
+  /// \brief
+  /// New signal from data
+  /// Params:
+  /// * data: a struct containing a pointer to floats, with their length.
+  /// * sample_rate: the sample rate of the sound sent.
   ffi.Pointer<SignalHandle> dsprs_signal_new(
     slice_ref_float_t data,
     int sample_rate,
@@ -85,6 +93,10 @@ class DspRs {
   late final _dart_dsprs_signal_new _dsprs_signal_new =
       _dsprs_signal_new_ptr.asFunction<_dart_dsprs_signal_new>();
 
+  /// \brief
+  /// Create an empty signal
+  /// Params:
+  /// * sample_rate: the sample rate of the signal
   ffi.Pointer<SignalHandle> dsprs_signal_empty(
     int sample_rate,
   ) {
@@ -98,6 +110,10 @@ class DspRs {
   late final _dart_dsprs_signal_empty _dsprs_signal_empty =
       _dsprs_signal_empty_ptr.asFunction<_dart_dsprs_signal_empty>();
 
+  /// \brief
+  /// Free a signal
+  /// Params:
+  /// * to_free: Ptr from Rust with a signal.
   void dsprs_signal_free(
     ffi.Pointer<SignalHandle> to_free,
   ) {
@@ -111,6 +127,10 @@ class DspRs {
   late final _dart_dsprs_signal_free _dsprs_signal_free =
       _dsprs_signal_free_ptr.asFunction<_dart_dsprs_signal_free>();
 
+  /// \brief
+  /// Re-scale a signal
+  /// * signal: ptr to created signal
+  /// * amount: float to scale the signal to.
   ffi.Pointer<SignalHandle> dsprs_signal_rescale(
     ffi.Pointer<SignalHandle> signal,
     double amount,
@@ -127,11 +147,15 @@ class DspRs {
   late final _dart_dsprs_signal_rescale _dsprs_signal_rescale =
       _dsprs_signal_rescale_ptr.asFunction<_dart_dsprs_signal_rescale>();
 
+  /// \brief
+  /// Create a new Forward FFT planner
+  /// Params:
+  /// * fft_size: size of the FFT to plan.
   ffi.Pointer<ForwardFFTHandle> dsprs_forward_fft_new(
-    int sample_size,
+    int fft_size,
   ) {
     return _dsprs_forward_fft_new(
-      sample_size,
+      fft_size,
     );
   }
 
@@ -141,6 +165,11 @@ class DspRs {
   late final _dart_dsprs_forward_fft_new _dsprs_forward_fft_new =
       _dsprs_forward_fft_new_ptr.asFunction<_dart_dsprs_forward_fft_new>();
 
+  /// \brief
+  /// Process an FFT with a signal
+  /// Params:
+  /// * fft: Ptr to previously created Forward FFT planer
+  /// * signal: Ptr to previously created signal
   ffi.Pointer<SpectrumHandle> dsprs_forward_fft_process(
     ffi.Pointer<ForwardFFTHandle> fft,
     ffi.Pointer<SignalHandle> signal,
@@ -298,6 +327,22 @@ class DspRs {
       _dsprs_blackman_window_ptr.asFunction<_dart_dsprs_blackman_window>();
 
   /// \brief
+  /// Check for Window length.
+  /// If it's null, returns -1, otherwise the window size.
+  int dsprs_window_len(
+    ffi.Pointer<WindowHandle> window,
+  ) {
+    return _dsprs_window_len(
+      window,
+    );
+  }
+
+  late final _dsprs_window_len_ptr =
+      _lookup<ffi.NativeFunction<_c_dsprs_window_len>>('dsprs_window_len');
+  late final _dart_dsprs_window_len _dsprs_window_len =
+      _dsprs_window_len_ptr.asFunction<_dart_dsprs_window_len>();
+
+  /// \brief
   /// Apply the window to the sample data
   bool dsprs_window_apply(
     ffi.Pointer<WindowHandle> window,
@@ -316,6 +361,93 @@ class DspRs {
       _lookup<ffi.NativeFunction<_c_dsprs_window_apply>>('dsprs_window_apply');
   late final _dart_dsprs_window_apply _dsprs_window_apply =
       _dsprs_window_apply_ptr.asFunction<_dart_dsprs_window_apply>();
+
+  /// \brief
+  /// Get the frequency of the fft component at index
+  /// Params:
+  /// * spectrum: ptr to the already created spectrum.
+  /// * index: Index of the FFT. Keep in mind that the calculation is ciclycal.
+  /// Returns:
+  /// Frequency in Hertz as a float if spectrum is not null, otherwise -1.0
+  double dsprs_spectrum_item_freq(
+    ffi.Pointer<SpectrumHandle> spectrum,
+    int index,
+  ) {
+    return _dsprs_spectrum_item_freq(
+      spectrum,
+      index,
+    );
+  }
+
+  late final _dsprs_spectrum_item_freq_ptr =
+      _lookup<ffi.NativeFunction<_c_dsprs_spectrum_item_freq>>(
+          'dsprs_spectrum_item_freq');
+  late final _dart_dsprs_spectrum_item_freq _dsprs_spectrum_item_freq =
+      _dsprs_spectrum_item_freq_ptr
+          .asFunction<_dart_dsprs_spectrum_item_freq>();
+
+  /// \brief
+  /// Returns the maximum frequency in the spectrum
+  /// Params:
+  /// * spectrum: ptr to the already created spectrum.
+  /// Returns:
+  /// Max freq in Hertz as a float if spectrum is not null, otherwise -1.0
+  double dsprs_spectrum_max_freq(
+    ffi.Pointer<SpectrumHandle> spectrum,
+  ) {
+    return _dsprs_spectrum_max_freq(
+      spectrum,
+    );
+  }
+
+  late final _dsprs_spectrum_max_freq_ptr =
+      _lookup<ffi.NativeFunction<_c_dsprs_spectrum_max_freq>>(
+          'dsprs_spectrum_max_freq');
+  late final _dart_dsprs_spectrum_max_freq _dsprs_spectrum_max_freq =
+      _dsprs_spectrum_max_freq_ptr.asFunction<_dart_dsprs_spectrum_max_freq>();
+
+  /// \brief
+  /// Returns the length of the spectrum data
+  /// Params:
+  /// * spectrum: ptr to the already created spectrum.
+  /// Returns:
+  /// length of data (truncated to i64) if spectrum is not null, otherwise -1.0
+  int dsprs_spectrum_len(
+    ffi.Pointer<SpectrumHandle> handle,
+  ) {
+    return _dsprs_spectrum_len(
+      handle,
+    );
+  }
+
+  late final _dsprs_spectrum_len_ptr =
+      _lookup<ffi.NativeFunction<_c_dsprs_spectrum_len>>('dsprs_spectrum_len');
+  late final _dart_dsprs_spectrum_len _dsprs_spectrum_len =
+      _dsprs_spectrum_len_ptr.asFunction<_dart_dsprs_spectrum_len>();
+
+  /// \brief
+  /// Returns the spectrum into a real valued array.
+  /// Params:
+  /// * spectrum: ptr to the already created spectrum.
+  /// * output: ptr to slice struct
+  /// Returns:
+  /// true if copy was successful, false otherwise
+  bool dsprs_spectrum_to_real(
+    ffi.Pointer<SpectrumHandle> handle,
+    slice_mut_float_t output,
+  ) {
+    return _dsprs_spectrum_to_real(
+          handle,
+          output,
+        ) !=
+        0;
+  }
+
+  late final _dsprs_spectrum_to_real_ptr =
+      _lookup<ffi.NativeFunction<_c_dsprs_spectrum_to_real>>(
+          'dsprs_spectrum_to_real');
+  late final _dart_dsprs_spectrum_to_real _dsprs_spectrum_to_real =
+      _dsprs_spectrum_to_real_ptr.asFunction<_dart_dsprs_spectrum_to_real>();
 }
 
 class ForwardFFTHandle extends ffi.Opaque {}
@@ -346,24 +478,6 @@ class slice_ref_float_t extends ffi.Struct {
 }
 
 /// \brief
-/// Same as [`Vec<T>`][`rust::Vec`], but with guaranteed `#[repr(C)]` layout
-class Vec_float_t extends ffi.Struct {
-  external ffi.Pointer<ffi.Float> ptr;
-
-  @ffi.Uint64()
-  external int len;
-
-  @ffi.Uint64()
-  external int cap;
-}
-
-class SignalHandle extends ffi.Opaque {}
-
-class SpectrumHandle extends ffi.Opaque {}
-
-class WindowHandle extends ffi.Opaque {}
-
-/// \brief
 /// `&'lt mut [T]` but with a guaranteed `#[repr(C)]` layout.
 ///
 /// # C layout (for some given type T)
@@ -388,6 +502,12 @@ class slice_mut_float_t extends ffi.Struct {
   external int len;
 }
 
+class SignalHandle extends ffi.Opaque {}
+
+class SpectrumHandle extends ffi.Opaque {}
+
+class WindowHandle extends ffi.Opaque {}
+
 typedef _c_forward_fft_handle_new = ffi.Pointer<ForwardFFTHandle> Function(
   ffi.Uint64 sample_size,
 );
@@ -404,14 +524,16 @@ typedef _dart_forward_fft_handle_free = void Function(
   ffi.Pointer<ForwardFFTHandle> p,
 );
 
-typedef _c_dsprs_forward_fft_process_real = Vec_float_t Function(
+typedef _c_dsprs_forward_fft_process_real = ffi.Uint8 Function(
   ffi.Pointer<ForwardFFTHandle> fft,
   slice_ref_float_t input,
+  slice_mut_float_t output,
 );
 
-typedef _dart_dsprs_forward_fft_process_real = Vec_float_t Function(
+typedef _dart_dsprs_forward_fft_process_real = int Function(
   ffi.Pointer<ForwardFFTHandle> fft,
   slice_ref_float_t input,
+  slice_mut_float_t output,
 );
 
 typedef _c_dsprs_signal_new = ffi.Pointer<SignalHandle> Function(
@@ -451,11 +573,11 @@ typedef _dart_dsprs_signal_rescale = ffi.Pointer<SignalHandle> Function(
 );
 
 typedef _c_dsprs_forward_fft_new = ffi.Pointer<ForwardFFTHandle> Function(
-  ffi.Uint64 sample_size,
+  ffi.Uint64 fft_size,
 );
 
 typedef _dart_dsprs_forward_fft_new = ffi.Pointer<ForwardFFTHandle> Function(
-  int sample_size,
+  int fft_size,
 );
 
 typedef _c_dsprs_forward_fft_process = ffi.Pointer<SpectrumHandle> Function(
@@ -552,6 +674,14 @@ typedef _dart_dsprs_blackman_window = ffi.Pointer<WindowHandle> Function(
   int window_length,
 );
 
+typedef _c_dsprs_window_len = ffi.Int64 Function(
+  ffi.Pointer<WindowHandle> window,
+);
+
+typedef _dart_dsprs_window_len = int Function(
+  ffi.Pointer<WindowHandle> window,
+);
+
 typedef _c_dsprs_window_apply = ffi.Uint8 Function(
   ffi.Pointer<WindowHandle> window,
   slice_ref_float_t input,
@@ -561,5 +691,41 @@ typedef _c_dsprs_window_apply = ffi.Uint8 Function(
 typedef _dart_dsprs_window_apply = int Function(
   ffi.Pointer<WindowHandle> window,
   slice_ref_float_t input,
+  slice_mut_float_t output,
+);
+
+typedef _c_dsprs_spectrum_item_freq = ffi.Float Function(
+  ffi.Pointer<SpectrumHandle> spectrum,
+  ffi.Uint64 index,
+);
+
+typedef _dart_dsprs_spectrum_item_freq = double Function(
+  ffi.Pointer<SpectrumHandle> spectrum,
+  int index,
+);
+
+typedef _c_dsprs_spectrum_max_freq = ffi.Float Function(
+  ffi.Pointer<SpectrumHandle> spectrum,
+);
+
+typedef _dart_dsprs_spectrum_max_freq = double Function(
+  ffi.Pointer<SpectrumHandle> spectrum,
+);
+
+typedef _c_dsprs_spectrum_len = ffi.Int64 Function(
+  ffi.Pointer<SpectrumHandle> handle,
+);
+
+typedef _dart_dsprs_spectrum_len = int Function(
+  ffi.Pointer<SpectrumHandle> handle,
+);
+
+typedef _c_dsprs_spectrum_to_real = ffi.Uint8 Function(
+  ffi.Pointer<SpectrumHandle> handle,
+  slice_mut_float_t output,
+);
+
+typedef _dart_dsprs_spectrum_to_real = int Function(
+  ffi.Pointer<SpectrumHandle> handle,
   slice_mut_float_t output,
 );
