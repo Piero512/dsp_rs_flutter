@@ -8,9 +8,9 @@ class DspRs {
 
   static DspRsFfi _getDspRsFfiLibrary() {
     if (Platform.isAndroid || Platform.isLinux) {
-      return DspRsFfi(DynamicLibrary.open('libminiaudio.so'));
+      return DspRsFfi(DynamicLibrary.open('libdsp.so'));
     } else if (Platform.isMacOS) {
-      return DspRsFfi(DynamicLibrary.open('libminiaudio.dylib'));
+      return DspRsFfi(DynamicLibrary.open('libdsp.dylib'));
     }
     return DspRsFfi(DynamicLibrary.executable());
   }

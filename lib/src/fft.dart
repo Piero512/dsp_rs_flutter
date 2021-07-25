@@ -3,6 +3,8 @@ import 'dart:ffi';
 import 'package:dsp_rs/src/ffi.dart';
 
 import 'dsp_rs_ffi.dart';
+import 'signal.dart';
+import 'spectrum.dart';
 
 class ForwardFFT {
   Pointer<ForwardFFTHandle> handle;
@@ -25,5 +27,9 @@ class ForwardFFT {
       Pointer<slice_ref_float_t> input, Pointer<slice_mut_float_t> output) {
     return DspRs.ffi
         .dsprs_forward_fft_process_real(handle, input.ref, output.ref);
+  }
+
+  Spectrum process(Signal s) {
+    return Spectrum(DspRs.ffi.dsprs_forward_fft_process(handle, s.handle));
   }
 }

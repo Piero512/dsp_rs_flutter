@@ -1,7 +1,5 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
-
 import 'dsp_rs_ffi.dart';
 import 'ffi.dart';
 
@@ -46,20 +44,9 @@ class Window {
     return DspRs.ffi.dsprs_window_len(_handle);
   }
 
-  Pointer<slice_mut_float_t> applyWindow(
-      Pointer<slice_ref_float_t> constInput, int length) {
-    var arena = Arena();
-    var outputArray = arena.call<Float>(length);
-    var outputSlice = arena.call<slice_mut_float_t>();
-    outputSlice.ref.ptr = outputArray;
-    outputSlice.ref.len = length;
-    var result =
-        DspRs.ffi.dsprs_window_apply(_handle, constInput.ref, outputSlice.ref);
-    if (result) {
-      return outputSlice;
-    } else {
-      arena.releaseAll();
-      throw "Error applying window!";
-    }
+  bool applyWindow(Pointer<slice_ref_float_t> constInput,
+      Pointer<slice_mut_float_t> outputSlice) {
+    return DspRs.ffi
+        .dsprs_window_apply(_handle, constInput.ref, outputSlice.ref);
   }
 }
